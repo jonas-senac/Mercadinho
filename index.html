@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuperFácil | Supermercado Inteligente & Delivery</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- CABEÇALHO / HEADER DE SUPERMERCADO REAL -->
+    <header class="header">
+        <div class="header-top">
+            <div class="container header-top-content">
+                <div class="store-location">
+                    <span>📍 Loja Selecionada:</span>
+                    <strong>Caçador (SC) - Centro 24h</strong>
+                </div>
+                <div class="top-announcement">
+                    ⚡ Entrega grátis em compras acima de R$ 150,00 • Use o cupom <strong>MERCADO10</strong>
+                </div>
+                <div class="top-links">
+                    <span id="user-display">👤 Olá, Visitante</span>
+                    <button class="btn-text" onclick="switchView('auth')">Entrar / Cadastrar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="header-main">
+            <div class="container main-nav-container">
+                <div class="brand" onclick="switchView('store')">
+                    <div class="brand-icon">🛒</div>
+                    <div class="brand-text">
+                        <h1>Super<span>Fácil</span></h1>
+                        <p>Hipermercado & Delivery</p>
+                    </div>
+                </div>
+
+                <div class="header-search">
+                    <input type="text" id="global-search" placeholder="O que você procura hoje? (ex: Arroz, Leite, Cerveja...)" oninput="filterCatalog()">
+                    <button class="search-btn">🔍</button>
+                </div>
+
+                <div class="header-actions">
+                    <button class="action-btn" onclick="switchView('store')">
+                        <span>🏪</span> Loja
+                    </button>
+                    <button class="action-btn" onclick="switchView('stock-admin')">
+                        <span>📦</span> Estoque & Validade
+                    </button>
+                    <button class="cart-trigger" onclick="toggleCartDrawer()">
+                        <span class="cart-icon">🛍️</span>
+                        <div class="cart-badge-info">
+                            <small>Meu Carrinho</small>
+                            <strong id="header-cart-total">R$ 0,00</strong>
+                        </div>
+                        <span class="cart-count" id="header-cart-count">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CATEGORIAS DEPARTAMENTOS -->
+        <div class="header-categories">
+            <div class="container categories-flex">
+                <button class="cat-pill active" onclick="filterCategory('Todos')">✨ Todos os Departamentos</button>
+                <button class="cat-pill" onclick="filterCategory('Hortifruti')">🍎 Hortifruti & Feira</button>
+                <button class="cat-pill" onclick="filterCategory('Açougue')">🥩 Açougue & Peixaria</button>
+                <button class="cat-pill" onclick="filterCategory('Laticínios')">🧀 Laticínios & Frios</button>
+                <button class="cat-pill" onclick="filterCategory('Padaria')">🥖 Padaria & Confeitaria</button>
+                <button class="cat-pill" onclick="filterCategory('Mercearia')">🌾 Mercearia & Despensa</button>
+                <button class="cat-pill" onclick="filterCategory('Bebidas')">🍺 Bebidas & Adegas</button>
+                <button class="cat-pill" onclick="filterCategory('Limpeza')">🧼 Limpeza & Casa</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTAINER PRINCIPAL DE TELAS -->
+    <main class="main-content">
+
+        <!-- ==========================================
+             1. TELA DE LOJA / CATÁLOGO E COMPRAS (E-COMMERCE & PDV)
+             ========================================== -->
+        <section id="view-store" class="view active">
+            <div class="container">
+                <!-- BANNER PROMOCIONAL -->
+                <div class="promo-banner">
+                    <div class="promo-text">
+                        <span class="badge-tag">Oferta do Dia 🔥</span>
+                        <h2>Especial Churrasco & Hortifruti com até 30% OFF</h2>
+                        <p>Garantimos a seleção dos melhores produtos fresquinhos entregues diretamente na sua casa ou prontos para retirada rápida sem fila.</p>
+                        <button class="btn btn-light" onclick="filterCategory('Açougue')">Ver Ofertas</button>
+                    </div>
+                    <div class="promo-graphic">
+                        🥩🍎🥦
+                    </div>
+                </div>
+
+                <div class="store-grid-layout">
+                    <!-- LISTA DE PRODUTOS -->
+                    <div class="catalog-section">
+                        <div class="catalog-header">
+                            <h3 id="current-category-title">Todos os Produtos</h3>
+                            <div class="sort-box">
+                                <label>Ordenar por:</label>
+                                <select id="sort-select" onchange="sortCatalog()">
+                                    <option value="pop">Mais Populares</option>
+                                    <option value="price-asc">Menor Preço</option>
+                                    <option value="price-desc">Maior Preço</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="product-grid" class="product-grid">
+                            <!-- Injetado via JS -->
+                        </div>
+                    </div>
+
+                    <!-- RESUMO RÁPIDO LATERAL (DESKTOP) -->
+                    <div class="sidebar-cart-desktop">
+                        <div class="mini-cart-card">
+                            <h3>🛒 Resumo da Compra</h3>
+                            <div id="mini-cart-items" class="mini-cart-items">
+                                <!-- Injetado via JS -->
+                            </div>
+                            <div class="mini-cart-footer">
+                                <div class="sum-row">
+                                    <span>Subtotal</span>
+                                    <span id="cart-subtotal">R$ 0,00</span>
+                                </div>
+                                <div class="sum-row discount">
+                                    <span>Desconto (Cupom)</span>
+                                    <span id="cart-discount">- R$ 0,00</span>
+                                </div>
+                                <div class="sum-row total">
+                                    <span>Total Final</span>
+                                    <span id="cart-final-total">R$ 0,00</span>
+                                </div>
+                                <button class="btn btn-primary btn-block btn-lg" onclick="openCheckoutModal()">Finalizar Compra 🚀</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==========================================
+             2. TELA DE GESTÃO DE ESTOQUE E VALIDADE (ADMIN / ESTOQUISTA)
+             ========================================== -->
+        <section id="view-stock-admin" class="view">
+            <div class="container">
+                <div class="admin-header">
+                    <div>
+                        <h2>📦 Painel de Controle de Estoque & Validade</h2>
+                        <p>Gerencie entradas, lotes, prazos de validade e dispare promoções para itens próximos ao vencimento.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="openNewProductModal()">+ Novo Produto</button>
+                </div>
+
+                <div class="admin-stats-grid">
+                    <div class="astat-card">
+                        <span>Total de Produtos</span>
+                        <h3 id="stat-total-prod">0</h3>
+                    </div>
+                    <div class="astat-card alert">
+                        <span>Alertas de Validade (≤ 7 dias)</span>
+                        <h3 id="stat-alert-expiry">0</h3>
+                    </div>
+                    <div class="astat-card warning">
+                        <span>Estoque Crítico (≤ 5 un)</span>
+                        <h3 id="stat-alert-stock">0</h3>
+                    </div>
+                    <div class="astat-card success">
+                        <span>Faturamento do Dia</span>
+                        <h3 id="stat-revenue">R$ 0,00</h3>
+                    </div>
+                </div>
+
+                <div class="admin-table-container">
+                    <div class="table-toolbar">
+                        <input type="text" id="admin-search" placeholder="🔍 Filtrar produtos no estoque..." oninput="renderAdminTable()">
+                        <select id="admin-filter-status" onchange="renderAdminTable()">
+                            <option value="all">Todos os Status</option>
+                            <option value="alert">Apenas com Alertas</option>
+                        </select>
+                    </div>
+                    <table class="pro-table">
+                        <thead>
+                            <tr>
+                                <th>Produto</th>
+                                <th>Departamento</th>
+                                <th>Preço Unit.</th>
+                                <th>Estoque Atual</th>
+                                <th>Validade (Dias)</th>
+                                <th>Status do Lote</th>
+                                <th>Ações de Gestão</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-body">
+                            <!-- Injetado via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==========================================
+             3. TELA DE LOGIN / CADASTRO DE CLIENTES E GERENTES
+             ========================================== -->
+        <section id="view-auth" class="view">
+            <div class="container auth-container-center">
+                <div class="auth-box">
+                    <div class="auth-tabs">
+                        <button class="atab active" onclick="switchAuthTab('login')">Entrar na Conta</button>
+                        <button class="atab" onclick="switchAuthTab('register')">Criar Nova Conta</button>
+                    </div>
+
+                    <!-- LOGIN FORM -->
+                    <form id="form-login" class="auth-form active" onsubmit="handleLogin(event)">
+                        <h2>Bem-vindo de volta! 👋</h2>
+                        <p>Acesse para acumular pontos, ver pedidos e comprar mais rápido.</p>
+                        
+                        <div class="input-group">
+                            <label>E-mail ou CPF</label>
+                            <input type="text" id="login-email" value="cliente@superfacil.com" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Senha</label>
+                            <input type="password" id="login-pass" value="123456" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Perfil de Acesso</label>
+                            <select id="login-role">
+                                <option value="Cliente">🛒 Cliente do Supermercado</option>
+                                <option value="Gerente / Estoquista">📊 Gerente / Estoquista (Admin)</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Entrar no Sistema</button>
+                    </form>
+
+                    <!-- REGISTER FORM -->
+                    <form id="form-register" class="auth-form" onsubmit="handleRegister(event)">
+                        <h2>Crie sua conta SuperFácil 🚀</h2>
+                        <p>Cadastre-se em segundos e ganhe frete grátis na primeira compra.</p>
+
+                        <div class="input-group">
+                            <label>Nome Completo</label>
+                            <input type="text" id="reg-name" placeholder="Ex: Carlos Eduardo" required>
+                        </div>
+                        <div class="input-group">
+                            <label>E-mail</label>
+                            <input type="email" id="reg-email" placeholder="seu@email.com" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Senha</label>
+                            <input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Concluir Cadastro</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ==========================================
+         CARRINHO DRAWER (MÓVEL / SLIDE LATERAL)
+         ========================================== -->
+    <div id="cart-drawer" class="cart-drawer">
+        <div class="drawer-header">
+            <h3>🛍️ Seu Carrinho de Compras</h3>
+            <button class="close-drawer" onclick="toggleCartDrawer()">✕</button>
+        </div>
+        <div id="drawer-items" class="drawer-items-list">
+            <!-- Injetado via JS -->
+        </div>
+        <div class="drawer-footer">
+            <div class="drawer-coupon">
+                <input type="text" id="coupon-input" placeholder="Cupom (use MERCADO10)">
+                <button class="btn btn-dark btn-sm" onclick="applyCoupon()">Aplicar</button>
+            </div>
+            <div class="sum-row">
+                <span>Subtotal</span>
+                <span id="drawer-subtotal">R$ 0,00</span>
+            </div>
+            <div class="sum-row discount">
+                <span>Desconto</span>
+                <span id="drawer-discount">- R$ 0,00</span>
+            </div>
+            <div class="sum-row total">
+                <span>Total</span>
+                <span id="drawer-final">R$ 0,00</span>
+            </div>
+            <button class="btn btn-primary btn-block btn-lg" onclick="openCheckoutModal()">Finalizar Pedido no Caixa</button>
+        </div>
+    </div>
+    <div id="drawer-backdrop" class="drawer-backdrop" onclick="toggleCartDrawer()"></div>
+
+    <!-- ==========================================
+         MODAL DE CHECKOUT / PAGAMENTO REAL
+         ========================================== -->
+    <div id="checkout-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>💳 Fechamento de Caixa / Pagamento</h3>
+                <button onclick="closeCheckoutModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="payment-methods-grid">
+                    <label class="pmethod active">
+                        <input type="radio" name="pay" checked>
+                        <span>💠 PIX Instantâneo (-5% OFF)</span>
+                    </label>
+                    <label class="pmethod">
+                        <input type="radio" name="pay">
+                        <span>💳 Cartão de Crédito</span>
+                    </label>
+                    <label class="pmethod">
+                        <input type="radio" name="pay">
+                        <span>💵 Dinheiro na Entrega / Caixa</span>
+                    </label>
+                </div>
+                <div class="delivery-address-box">
+                    <label>Endereço de Entrega em Caçador (SC):</label>
+                    <input type="text" value="Rua Barão do Rio Branco, 450 - Centro" id="delivery-address">
+                </div>
+                <div class="final-checkout-summary">
+                    <div>Total a Pagar: <strong id="modal-pay-total" style="font-size: 1.4rem; color: var(--primary-dark);">R$ 0,00</strong></div>
+                    <button class="btn btn-primary btn-lg" onclick="finalizeOrder()">Confirmar e Emitir Pedido 🚀</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL NOVO PRODUTO (ESTOQUE) -->
+    <div id="product-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>📦 Cadastrar Novo Produto no Estoque</h3>
+                <button onclick="closeNewProductModal()">✕</button>
+            </div>
+            <form onsubmit="handleAddNewProduct(event)" class="modal-body">
+                <div class="input-group">
+                    <label>Nome do Produto</label>
+                    <input type="text" id="new-name" placeholder="Ex: Azeite de Oliva Extra Virgem 500ml" required>
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Departamento</label>
+                        <select id="new-cat">
+                            <option value="Hortifruti">Hortifruti</option>
+                            <option value="Açougue">Açougue</option>
+                            <option value="Laticínios">Laticínios</option>
+                            <option value="Padaria">Padaria</option>
+                            <option value="Mercearia">Mercearia</option>
+                            <option value="Bebidas">Bebidas</option>
+                            <option value="Limpeza">Limpeza</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Ícone / Emoji</label>
+                        <input type="text" id="new-icon" value="🫒" required>
+                    </div>
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Preço (R$)</label>
+                        <input type="number" id="new-price" step="0.01" min="0.1" placeholder="29.90" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Estoque (Un)</label>
+                        <input type="number" id="new-stock" min="1" placeholder="30" required>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Validade em Dias (Alerta se ≤ 7)</label>
+                    <input type="number" id="new-expiry" min="1" value="45" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Salvar no Estoque</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="toast">Produto adicionado com sucesso!</div>
+
+    <script src="script.js"></script>
+</body>
+</html>
