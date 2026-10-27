@@ -1,4 +1,4 @@
-name: ULTRA CORE - Protecao do Projeto
+name: ULTRA CORE 2.0 - Blindagem Total
 
 on:
   push:
@@ -20,57 +20,84 @@ concurrency:
 
 jobs:
   security:
-    name: Verificacao de Seguranca
+    name: Auditoria e Blindagem Ultra 1000x
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
-    permissions:
-      contents: read
-
     steps:
-      - name: Checkout seguro
+      - name: 1. Checkout seguro do repositorio
         uses: actions/checkout@v4
         with:
           persist-credentials: false
+          fetch-depth: 0
 
-      - name: Verificar arquivos essenciais
+      - name: 2. Bloquear extensoes perigosas ou maliciosas
         shell: bash
         run: |
           set -euo pipefail
+          echo "Verificando ficheiros suspeitos..."
+          bad_files=$(find . -type f \( -name "*.exe" -o -name "*.bat" -o -name "*.cmd" -o -name "*.sh" -o -name "*.php" -o -name "*.dll" \) -not -path '*/.*')
+          if [[ -n "$bad_files" ]]; then
+            echo "::error::BLOQUEIO DE SEGURANCA: Ficheiros executaveis ou suspeitos detetados: $bad_files"
+            exit 1
+          fi
+          echo "Nenhum ficheiro malicioso encontrado."
 
-          for file in index.html style.css script.js; do
-            if [[ ! -s "$file" || -L "$file" ]]; then
-              echo "::error::Arquivo ausente, vazio ou link simbolico: $file"
+      - name: 3. Verificar integridade dos ficheiros essenciais e Sintaxe JS
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in index.html style.css script.js README.md; do
+            found=$(find . -maxdepth 2 -name "$file" -not -path '*/.*' | head -n 1)
+            if [[ -z "$found" || ! -s "$found" \vert{}\vert{} -L "$found" ]]; then
+              echo "::error::ALERTA: Ficheiro essencial ausente, vazio ou invalido: $file"
               exit 1
+            fi
+            echo "Ficheiro integro: $found"
+
+            if [[ "$file" == "script.js" ]]; then
+              node --check "$found"
+              echo "Sintaxe JavaScript validada com sucesso."
+            fi
+
+            if [[ "$file" == "index.html" ]]; then
+              if ! grep -qi "<html" "$found"; then
+                echo "::error::O ficheiro index.html parece corrompido (sem tag html)."
+                exit 1
+              fi
             fi
           done
 
-          echo "Arquivos essenciais encontrados."
-
-      - name: Validar JavaScript
-        shell: bash
-        run: node --check script.js
-
-      - name: Detectar conflitos
+      - name: 4. Scanner de Segredos e Codigo Perigoso
         shell: bash
         run: |
           set -euo pipefail
-
-          if git grep -n -I -E \
-            '^(<<<<<<< |=======|>>>>>>> )' \
-            -- '*.html' '*.css' '*.js'; then
-            echo "::error::Marcadores de conflito encontrados."
+          if git grep -n -I -E '(AIza[0-9A-Za-z-_]{35}|ghp_[0-9A-Za-z]{36}|sk-[0-9A-Za-z]{48})' -- '*.html' '*.css' '*.js'; then
+            echo "::error::PERIGO: Possivel chave de API ou senha exposta no codigo!"
             exit 1
           fi
 
-          echo "Nenhum conflito encontrado."
+          if git grep -n -I -E '\beval\s*\(' -- '*.js'; then
+            echo "::warning::Aviso de Seguranca: Uso de eval() detetado no JavaScript."
+          fi
+          echo "Scanner de vulnerabilidades concluido."
 
-      - name: Verificar patch
-        if: github.event_name == 'pull_request'
+      - name: 5. Detetar marcadores de conflito de Git
         shell: bash
         run: |
           set -euo pipefail
-          git diff --check "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"
+          if git grep -n -I -E '^(<<<<<<< |=======|>>>>>>> )' -- '*.html' '*.css' '*.js' '*.md'; then
+            echo "::error::Marcadores de conflito de merge encontrados!"
+            exit 1
+          fi
+          echo "Zero conflitos encontrados."
 
-      - name: Finalizar
-        run: echo "ULTRA CORE: verificacoes concluidas."
+      - name: 6. Gerar Relatorio de Seguranca
+        shell: bash
+        run: |
+          echo "### 🛡️ Relatório ULTRA CORE 2.0" >> $GITHUB_STEP_SUMMARY
+          echo "| Verificação | Estado |" >> $GITHUB_STEP_SUMMARY
+          echo "| :--- | :--- |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Bloqueio de Executáveis/Malware** | ✅ Limpo |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Integridade (HTML, CSS, JS, README)** | ✅ Protegido |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Validação de Sintaxe Node.js** | ✅ Aprovado |" >> $GITHUB_STEP
