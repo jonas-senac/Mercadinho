@@ -1,13 +1,14 @@
-
-name: ULTRA CORE - Protecao do Projeto
+name: ULTRA CORE - Protecao do Projeto Mercado
 
 on:
   push:
     branches:
       - main
+      - master
   pull_request:
     branches:
       - main
+      - master
   workflow_dispatch:
 
 permissions:
@@ -19,7 +20,7 @@ concurrency:
 
 jobs:
   security:
-    name: Verificacao de Seguranca
+    name: Verificacao de Seguranca Ultra 1000x
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
@@ -27,30 +28,31 @@ jobs:
       contents: read
 
     steps:
-      - name: Checkout seguro
+      - name: Checkout seguro do projeto
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
 
-      - name: Verificar arquivos essenciais
+      - name: Verificar integridade dos arquivos essenciais
         shell: bash
         run: |
           set -euo pipefail
 
+          # Lista de arquivos vitais do mercadinho que nao podem estar vazios ou corrompidos
           for file in index.html style.css script.js; do
             if [[ ! -s "$file" || -L "$file" ]]; then
-              echo "::error::Arquivo ausente, vazio ou link simbolico: $file"
+              echo "::error::ALERTA DE SEGURANCA: Arquivo ausente, vazio ou link simbolico detectado: $file"
               exit 1
             fi
           done
 
-          echo "Arquivos essenciais encontrados."
+          echo "Todos os arquivos essenciais estao integros."
 
-      - name: Validar JavaScript
+      - name: Validar sintaxe do JavaScript
         shell: bash
         run: node --check script.js
 
-      - name: Detectar conflitos
+      - name: Bloquear marcadores de conflito indesejados
         shell: bash
         run: |
           set -euo pipefail
@@ -58,13 +60,13 @@ jobs:
           if git grep -n -I -E \
             '^(<<<<<<< |=======|>>>>>>> )' \
             -- '*.html' '*.css' '*.js'; then
-            echo "::error::Marcadores de conflito encontrados."
+            echo "::error::ALERTA: Marcadores de conflito de codigo encontrados!"
             exit 1
           fi
 
-          echo "Nenhum conflito encontrado."
+          echo "Nenhum conflito de codigo detectado."
 
-      - name: Verificar patch
+      - name: Verificar patch de alteracoes
         if: github.event_name == 'pull_request'
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
@@ -74,5 +76,5 @@ jobs:
           set -euo pipefail
           git diff --check "$BASE_SHA" "$HEAD_SHA"
 
-      - name: Finalizar
-        run: echo "ULTRA CORE: verificacoes concluidas."
+      - name: Finalizar com Sucesso
+        run: echo "ULTRA CORE: Todas as verificacoes de seguranca passaram com sucesso!"
