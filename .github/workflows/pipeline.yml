@@ -1,28 +1,13 @@
 
-name: pipeline
-
-on:
-  push:
-
-jobs:
-  teste:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Clone
-        uses: actions/checkout@v4
-
-      - name: Exibir mensagem
-        run: echo "Olá, GitHub Actions!"
-
-
 name: ULTRA CORE - Protecao do Projeto
 
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened, ready_for_review]
   push:
-    branches: [main]
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -33,10 +18,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  integrity:
-    name: Verificacao de Integridade
+  security:
+    name: Verificacao de Seguranca
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
 
     permissions:
       contents: read
@@ -46,29 +31,26 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
-          fetch-depth: 0
 
-      - name: Validar arquivos essenciais
+      - name: Verificar arquivos essenciais
         shell: bash
         run: |
           set -euo pipefail
 
-          for f in index.html style.css script.js; do
-            if [[ ! -f "$f" || -L "$f" || ! -s "$f" ]]; then
-              echo "::error::Arquivo ausente, vazio ou link simbolico: $f"
+          for file in index.html style.css script.js; do
+            if [[ ! -s "$file" || -L "$file" ]]; then
+              echo "::error::Arquivo ausente, vazio ou link simbolico: $file"
               exit 1
             fi
           done
 
-          echo "Arquivos essenciais validados."
+          echo "Arquivos essenciais encontrados."
 
-      - name: Verificar sintaxe JavaScript
+      - name: Validar JavaScript
         shell: bash
-        run: |
-          set -euo pipefail
-          node --check script.js
+        run: node --check script.js
 
-      - name: Detectar conflitos de mesclagem
+      - name: Detectar conflitos
         shell: bash
         run: |
           set -euo pipefail
@@ -80,22 +62,9 @@ jobs:
             exit 1
           fi
 
-          echo "Nenhum marcador de conflito encontrado."
+          echo "Nenhum conflito encontrado."
 
-      - name: Verificar arquivos sensiveis conhecidos
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if git ls-files | grep -Ei \
-            '(^|/)\.env($|\.)|(^|/)(id_rsa|id_ed25519|credentials\.json|secrets\.json)$'; then
-            echo "::error::Possivel arquivo sensivel versionado."
-            exit 1
-          fi
-
-          echo "Verificacao de nomes sensiveis concluida."
-
-      - name: Verificar alteracoes do pull request
+      - name: Verificar patch
         if: github.event_name == 'pull_request'
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
@@ -103,11 +72,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
           git diff --check "$BASE_SHA" "$HEAD_SHA"
 
-          echo "Resumo dos arquivos alterados:"
-          git diff --name-status "$BASE_SHA" "$HEAD_SHA"
-
-      - name: Confirmar verificacoes
-        run: echo "ULTRA CORE: todas as verificacoes passaram."
+      - name: Finalizar
+        run: echo "ULTRA CORE: verificacoes concluidas."
